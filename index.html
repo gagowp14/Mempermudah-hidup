@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEMPERMUDAH HIDUP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for better UX */
+        #image-upload {
+            display: none;
+        }
+        .drop-zone-active {
+            border-color: #4f46e5; /* indigo-600 */
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2); /* ring-indigo-500/20 */
+        }
+        .loader {
+            border-top-color: #4f46e5; /* indigo-600 */
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.20.0"
+  }
+}
+</script>
+</head>
+<body class="bg-gradient-to-br from-purple-50 via-sky-50 to-cyan-100 font-sans text-slate-800">
+    <div class="container mx-auto max-w-4xl p-4 sm:p-6 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent pb-2">MEMPERMUDAH HIDUP</h1>
+            <p class="text-slate-500 mt-2 italic">"(hidup sudah sulit jangan memperSILIT)"</p>
+            <p class="text-slate-600 mt-4 max-w-2xl mx-auto">Unggah, seret, atau tempel hingga 10 gambar KTP untuk mengekstrak informasi secara massal dalam format yang Anda butuhkan.</p>
+        </header>
+
+        <main class="bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg p-6 sm:p-8 border border-white/50">
+            <div id="upload-container">
+                <label for="image-upload" id="drop-zone" class="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-white/50 hover:bg-white/80 transition-all duration-300">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                         <svg class="w-12 h-12 mb-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V8.25c0-1.12.93-2.25 2.25-2.25h13.5c1.24 0 2.25 1.13 2.25 2.25v9c0 1.12-.93 2.25-2.25 2.25H5.25c-1.24 0-2.25-1.13-2.25-2.25z" />
+                         </svg>
+                        <p class="mb-2 text-base text-slate-600"><span class="font-semibold text-indigo-600">Klik untuk mengunggah</span>, seret & lepas</p>
+                        <p class="text-sm text-slate-500">atau tempel gambar (Ctrl+V)</p>
+                        <p class="text-xs text-slate-400 mt-4">PNG, JPG, WEBP (Maks. 10 file)</p>
+                    </div>
+                </label>
+                <input id="image-upload" type="file" accept="image/png, image/jpeg, image/webp" multiple />
+            </div>
+
+            <div id="image-preview-container" class="hidden mt-6">
+                 <h2 class="text-xl font-bold text-slate-800 mb-4">Pratinjau Gambar:</h2>
+                 <div id="image-preview-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <!-- Previews will be dynamically inserted here -->
+                 </div>
+            </div>
+            
+            <div id="controls" class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+                <button id="process-button" disabled class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+                    GASKEN
+                </button>
+                 <button id="reset-button" class="hidden w-full sm:w-auto bg-transparent text-slate-600 font-semibold py-3 px-8 rounded-lg hover:bg-slate-200 hover:text-slate-800 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-slate-300">
+                    Reset
+                </button>
+            </div>
+
+            <div id="loader" class="hidden my-8 flex justify-center items-center">
+                <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
+            </div>
+            
+            <div id="error-message" class="hidden my-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg"></div>
+
+            <div id="result-container" class="hidden mt-8">
+                <h2 class="text-2xl font-bold text-slate-900 mb-4">Hasil Ekstraksi</h2>
+                <div id="result-list" class="space-y-6">
+                   <!-- Results will be dynamically inserted here -->
+                </div>
+            </div>
+        </main>
+        
+        <footer class="text-center mt-10 pb-4">
+            <p class="text-sm text-slate-500">Dibuat dengan <span class="font-semibold bg-gradient-to-r from-blue-500 to-green-500 bg-clip-text text-transparent">Gemini API</span></p>
+        </footer>
+    </div>
+    <script type="module" src="./index.tsx"></script>
+</body>
+</html>
