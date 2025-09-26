@@ -102,7 +102,7 @@ document.addEventListener('paste', (e: ClipboardEvent) => {
 
     if (imageFiles.length > 0) {
         e.preventDefault();
-        addFilesToQueue(createFileList(imageFiles));
+        handleNewFileSelection(createFileList(imageFiles));
     }
 });
 
@@ -150,7 +150,7 @@ resultList.addEventListener('click', (e) => {
 
                 setTimeout(() => {
                     copyButton.innerHTML = `
-                       <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.353-.026.715-.026 1.068 0 1.13.094 1.976 1.057 1.976 2.192v1.392m-.824 1.138a3 3 0 01-1.342 0m-3.296-1.138a3 3 0 011.954 0m2.072 6.556a3 3 0 01-3.296 0m3.296 0a3 3 0 00-3.296 0m3.296 0a3 3 0 00-1.342 0" /></svg>
+                       <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a2.25 2.25 0 01-2.25 2.25h-1.5a2.25 2.25 0 01-2.25-2.25v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" /></svg>
                        Salin
                     `;
                     copyButton.classList.remove('bg-green-100', 'text-green-800');
@@ -222,25 +222,44 @@ function addFilesToQueue(files: FileList) {
 
     filesToProcess.forEach(file => {
         const reader = new FileReader();
-        reader.onloadend = () => {
-            const result = reader.result as string;
-            const parts = result.split(',');
-            const mimeType = parts[0].split(':')[1].split(';')[0];
-            const base64Image = parts[1];
 
-            uploadedFiles.push({ file, base64Image, mimeType });
-            
-            const previewElement = document.createElement('div');
-            previewElement.className = 'relative group overflow-hidden rounded-lg shadow-md';
-            previewElement.innerHTML = `
-                <img src="${result}" class="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-110" alt="Pratinjau ${file.name}">
-                <div class="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent text-white text-xs p-2 truncate">
-                    ${file.name}
-                </div>
-            `;
-            imagePreviewGrid.appendChild(previewElement);
+        reader.onloadend = () => {
+            try {
+                const result = reader.result as string;
+                if (!result || !result.includes(',')) {
+                    throw new Error('Invalid file reader result');
+                }
+                const parts = result.split(',');
+                const mimeType = parts[0].split(':')[1].split(';')[0];
+                const base64Image = parts[1];
+
+                if (!mimeType || !base64Image) {
+                    throw new Error('Could not parse Data URL');
+                }
+
+                uploadedFiles.push({ file, base64Image, mimeType });
+                
+                const previewElement = document.createElement('div');
+                previewElement.className = 'relative group overflow-hidden rounded-lg shadow-md';
+                previewElement.innerHTML = `
+                    <img src="${result}" class="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-110" alt="Pratinjau ${file.name}">
+                    <div class="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent text-white text-xs p-2 truncate">
+                        ${file.name}
+                    </div>
+                `;
+                imagePreviewGrid.appendChild(previewElement);
+            } catch (error) {
+                console.error(`Failed to process file ${file.name}`, error);
+                showError(`Gagal memproses pratinjau untuk: ${file.name}`);
+            }
         };
+
+        reader.onerror = () => {
+            console.error(`Failed to read file ${file.name}`, reader.error);
+            showError(`Gagal membaca file: ${file.name}`);
+        };
+        
         reader.readAsDataURL(file);
     });
 
